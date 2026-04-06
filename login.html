@@ -455,11 +455,20 @@
       return;
     }
 
+    // Build the confirm URL dynamically so it works on both
+    // localhost and your live GitHub Pages URL
+    const confirmUrl = window.location.origin
+      + window.location.pathname.replace('login.html', '')
+      + 'confirm.html';
+
     setLoading('btn-register', true);
     const { error } = await _supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } }
+      options: {
+        data: { full_name: name },
+        emailRedirectTo: confirmUrl
+      }
     });
     setLoading('btn-register', false);
 

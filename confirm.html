@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>验证邮件 — 家族谱</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    body {
+      background: var(--parchment-2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .confirm-card {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-mid);
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+    .confirm-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 24px;
+    }
+    .confirm-icon.success { background: #edf7ed; }
+    .confirm-icon.error   { background: #fdf0f0; }
+    .confirm-icon.loading { background: var(--parchment-2); }
+    .confirm-card h2 { margin-bottom: 10px; }
+    .confirm-card p  {
+      color: var(--ink-muted);
+      font-size: 0.93rem;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .spinner-lg {
+      width: 36px; height: 36px;
+      border: 3px solid var(--parchment-3);
+      border-top-color: var(--ink);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="confirm-card">
+
+  <!-- Loading state -->
+  <div id="state-loading">
+    <div class="confirm-icon loading">
+      <div class="spinner-lg"></div>
+    </div>
+    <h2>正在验证...</h2>
+    <p>请稍候，正在确认您的电子邮件地址。</p>
+  </div>
+
+  <!-- Success state -->
+  <div id="state-success" class="hidden">
+    <div class="confirm-icon success">✅</div>
+    <h2>验证成功！</h2>
+    <p>您的电子邮件已成功验证，欢迎加入家族谱。<br />即将跳转到登入页面...</p>
+    <a href="login.html" class="btn btn-primary" style="width:100%;">立即登入</a>
+  </div>
+
+  <!-- Error state -->
+  <div id="state-error" class="hidden">
+    <div class="confirm-icon error">❌</div>
+    <h2>验证失败</h2>
+    <p id="error-msg">验证链接已过期或无效，请重新注册或联系管理员。</p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <a href="login.html"  class="btn btn-primary">返回登入</a>
+      <a href="index.html"  class="btn btn-outline">回到主页</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  function show(id) {
+    ['state-loading','state-success','state-error'].forEach(s => {
+      document.getElementById(s).classList.toggle('hidden', s !== id);
+    });
+  }
+
+  async function handleConfirmation() {
+    // Supabase puts the tokens in the URL hash after email confirmation
+    const hash   = window.location.hash;
+    const params = new URLSearchParams(window.location.search);
+
+    // Check for error in URL first
+    const errorDesc = params.get('error_description') || params.get('error');
+    if (errorDesc) {
+      document.getElementById('error-msg').textContent = errorDesc;
+      show('state-error');
+      return;
+    }
+
+    // Supabase v2: session is set automatically from the hash
+    // Just check if we now have a valid session
+    const { data: { session }, error } = await _supabase.auth.getSession();
+
+    if (error) {
+      document.getElementById('error-msg').textContent = error.message;
+      show('state-error');
+      return;
+    }
+
+    if (session) {
+      show('state-success');
+      // Auto-redirect after 3 seconds
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 3000);
+    } else {
+      // No session yet — might still be processing, wait briefly
+      setTimeout(async () => {
+        const { data: { session: s2 } } = await _supabase.auth.getSession();
+        if (s2) {
+          show('state-success');
+          setTimeout(() => window.location.href = 'dashboard.html', 3000);
+        } else {
+          show('state-error');
+        }
+      }, 1500);
+    }
+  }
+
+  handleConfirmation();
+</script>
+</body>
+</html>
