@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理面板 — 家族谱</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .admin-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--parchment-2);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 28px;
+      width: fit-content;
+    }
+    .admin-tab {
+      padding: 8px 20px;
+      border-radius: calc(var(--radius) - 2px);
+      font-size: 0.88rem;
+      cursor: pointer;
+      color: var(--ink-muted);
+      transition: var(--transition);
+      user-select: none;
+    }
+    .admin-tab.active {
+      background: var(--white);
+      color: var(--ink);
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(26,18,8,0.08);
+    }
+    .admin-panel { display: none; }
+    .admin-panel.active { display: block; }
+
+    /* ── Member list ── */
+    .member-card {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+      transition: var(--transition);
+    }
+    .member-card:hover { box-shadow: var(--shadow-soft); }
+    .member-avatar-sm {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--parchment-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      overflow: hidden;
+      border: 2px solid var(--parchment-3);
+    }
+    .member-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+    .member-info { flex: 1; }
+    .member-info h4 { font-size: 0.95rem; margin-bottom: 2px; }
+    .member-info p  { font-size: 0.8rem; color: var(--ink-muted); }
+    .member-actions { display: flex; gap: 8px; }
+
+    /* ── Relation builder ── */
+    .relation-builder {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .relation-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    @media (max-width: 700px) {
+      .relation-row { grid-template-columns: 1fr; }
+    }
+    .rel-arrow {
+      font-size: 1.2rem;
+      color: var(--ink-muted);
+      padding-bottom: 10px;
+      text-align: center;
+    }
+
+    /* ── Existing relations list ── */
+    .rel-chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .rel-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      background: var(--parchment-2);
+      border: 1px solid var(--parchment-3);
+      border-radius: 99px;
+      font-size: 0.82rem;
+      color: var(--ink-light);
+    }
+    .rel-chip-del {
+      cursor: pointer;
+      color: var(--red);
+      font-size: 0.75rem;
+      line-height: 1;
+    }
+    .rel-chip-del:hover { opacity: 0.7; }
+
+    /* ── Users table ── */
+    .user-role-select {
+      padding: 4px 10px;
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius);
+      background: var(--parchment);
+      font-size: 0.83rem;
+      color: var(--ink);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <div class="brand-icon">🌳</div>
+    家族谱
+  </a>
+  <div class="navbar-links">
+    <span id="nav-guest"><a href="login.html" class="btn-login">登入</a></span>
+    <span id="nav-user" class="navbar-user hidden">
+      <a href="dashboard.html">家族图谱</a>
+      <a href="photos.html">照片</a>
+      <a href="admin.html" id="nav-admin-link" style="display:none;">管理员</a>
+      <a href="profile.html">
+        <img src="" alt="头像" class="navbar-avatar" id="nav-avatar" onerror="this.style.display='none'" />
+      </a>
+      <button class="btn btn-outline btn-sm" onclick="logout()">登出</button>
+    </span>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <span class="sidebar-label">导航</span>
+    <div class="sidebar-section">
+      <a href="dashboard.html" class="sidebar-link"><span class="icon">🗺️</span> 家族图谱</a>
+      <a href="photos.html"    class="sidebar-link"><span class="icon">📸</span> 照片与上传</a>
+      <a href="profile.html"   class="sidebar-link"><span class="icon">👤</span> 个人设置</a>
+    </div>
+    <span class="sidebar-label">管理员</span>
+    <div class="sidebar-section">
+      <a href="admin.html" class="sidebar-link active"><span class="icon">⚙️</span> 管理面板</a>
+    </div>
+    <span class="sidebar-label">账号</span>
+    <div class="sidebar-section">
+      <a class="sidebar-link" onclick="logout()" style="cursor:pointer;"><span class="icon">🚪</span> 登出</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>管理面板</h1>
+      <p>添加家族成员、设置关系、管理用户</p>
+    </div>
+
+    <div class="alert" id="page-alert"></div>
+
+    <!-- ── Tabs ── -->
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="switchTab('members')">👥 成员管理</div>
+      <div class="admin-tab"        onclick="switchTab('relations')">🔗 关系设置</div>
+      <div class="admin-tab"        onclick="switchTab('users')">🛡️ 用户管理</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         TAB 1: MEMBERS
+    ═══════════════════════════════════════════════ -->
+    <div class="admin-panel active" id="panel-members">
+
+      <!-- Add member form -->
+      <div class="card mb-24">
+        <div class="form-card-title" style="font-family:var(--font-serif);font-size:1.05rem;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--parchment-3);">
+          ＋ 添加家族成员
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="form-group">
+            <label class="form-label">姓名 <span style="color:var(--red)">*</span></label>
+            <input type="text" class="form-input" id="m-name" placeholder="请输入姓名" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">性别</label>
+            <select class="form-input" id="m-gender">
+              <option value="">请选择</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">出生日期</label>
+            <input type="date" class="form-input" id="m-dob" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">逝世日期</label>
+            <input type="date" class="form-input" id="m-dod" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">国籍</label>
+            <input type="text" class="form-input" id="m-nationality" placeholder="例：中国" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">籍贯</label>
+            <input type="text" class="form-input" id="m-hometown" placeholder="例：福建" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">职业</label>
+            <input type="text" class="form-input" id="m-occupation" placeholder="例：商人" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">简介</label>
+          <textarea class="form-input" id="m-bio" rows="2" placeholder="简单介绍这位成员..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="addMember()">添加成员</button>
+      </div>
+
+      <!-- Members list -->
+      <h3 style="font-size:0.95rem;margin-bottom:14px;">现有成员 <span id="member-total" style="color:var(--ink-muted);font-weight:400;"></span></h3>
+      <div id="members-list"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         TAB 2: RELATIONS
+    ═══════════════════════════════════════════════ -->
+    <div class="admin-panel" id="panel-relations">
+      <div class="relation-builder">
+        <h3 style="font-size:0.97rem;margin-bottom:18px;">建立关系</h3>
+        <div class="relation-row">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">成员 A</label>
+            <select class="form-input" id="rel-member-a"></select>
+          </div>
+          <div class="rel-arrow">→</div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">关系类型</label>
+            <select class="form-input" id="rel-type">
+              <option value="parent_child">亲子（A 是 B 的父/母）</option>
+              <option value="spouse">配偶</option>
+              <option value="sibling">兄弟姐妹</option>
+            </select>
+          </div>
+          <div class="rel-arrow">→</div>
+        </div>
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">成员 B</label>
+          <select class="form-input" id="rel-member-b"></select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="addRelation()">建立关系</button>
+      </div>
+
+      <!-- Existing relations -->
+      <h3 style="font-size:0.95rem;margin-bottom:12px;">现有关系</h3>
+      <div id="relations-list"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         TAB 3: USERS
+    ═══════════════════════════════════════════════ -->
+    <div class="admin-panel" id="panel-users">
+      <div class="card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>用户</th>
+                <th>电子邮件</th>
+                <th>加入日期</th>
+                <th>角色</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Edit member modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>编辑成员资料</h3>
+      <div class="modal-close" onclick="closeEditModal()">✕</div>
+    </div>
+    <input type="hidden" id="edit-member-id" />
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group">
+        <label class="form-label">姓名</label>
+        <input type="text" class="form-input" id="edit-name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">性别</label>
+        <select class="form-input" id="edit-gender">
+          <option value="">请选择</option>
+          <option value="male">男</option>
+          <option value="female">女</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">出生日期</label>
+        <input type="date" class="form-input" id="edit-dob" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">逝世日期</label>
+        <input type="date" class="form-input" id="edit-dod" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">国籍</label>
+        <input type="text" class="form-input" id="edit-nationality" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">籍贯</label>
+        <input type="text" class="form-input" id="edit-hometown" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">职业</label>
+      <input type="text" class="form-input" id="edit-occupation" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">简介</label>
+      <textarea class="form-input" id="edit-bio" rows="2"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" onclick="saveMemberEdit()">保存</button>
+      <button class="btn btn-outline" onclick="closeEditModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  let allMembers = [], allRelations = [];
+
+  async function init() {
+    await requireAdmin();
+    await initNavbar();
+    await loadAll();
+  }
+
+  async function loadAll() {
+    await Promise.all([loadMembers(), loadRelations(), loadUsers()]);
+  }
+
+  // ── Tab switching ────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach((t, i) => {
+      const tabs = ['members', 'relations', 'users'];
+      t.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel-${tab}`).classList.add('active');
+  }
+
+  // ── Members ──────────────────────────────────────────────────
+  async function loadMembers() {
+    const { data } = await _supabase
+      .from('family_members')
+      .select('*')
+      .order('created_at');
+    allMembers = data || [];
+    renderMembers();
+    populateMemberSelects();
+  }
+
+  function renderMembers() {
+    const list = document.getElementById('members-list');
+    document.getElementById('member-total').textContent = `（${allMembers.length} 位）`;
+
+    if (!allMembers.length) {
+      list.innerHTML = '<p style="color:var(--ink-muted);font-size:0.88rem;">暂无成员，请添加第一位家族成员。</p>';
+      return;
+    }
+
+    list.innerHTML = allMembers.map(m => `
+      <div class="member-card">
+        <div class="member-avatar-sm">
+          ${m.avatar_url
+            ? `<img src="${getAvatarUrl(m.avatar_url)}" alt="" />`
+            : (m.gender === 'female' ? '👩' : '👨')}
+        </div>
+        <div class="member-info">
+          <h4>${m.name}</h4>
+          <p>
+            ${m.gender === 'male' ? '男' : m.gender === 'female' ? '女' : ''}
+            ${m.date_of_birth ? ' · ' + m.date_of_birth.slice(0,4) + ' 年' : ''}
+            ${m.occupation ? ' · ' + m.occupation : ''}
+          </p>
+        </div>
+        <div class="member-actions">
+          <button class="btn btn-outline btn-sm" onclick="openEditModal(${JSON.stringify(m).replace(/"/g,'&quot;')})">编辑</button>
+          <button class="btn btn-danger btn-sm"  onclick="deleteMember('${m.id}')">删除</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function addMember() {
+    const name = document.getElementById('m-name').value.trim();
+    if (!name) { showAlert('请输入姓名', 'error'); return; }
+
+    const user = await getCurrentUser();
+    const { error } = await _supabase.from('family_members').insert({
+      name,
+      gender:        document.getElementById('m-gender').value     || null,
+      date_of_birth: document.getElementById('m-dob').value        || null,
+      date_of_death: document.getElementById('m-dod').value        || null,
+      nationality:   document.getElementById('m-nationality').value.trim() || null,
+      hometown:      document.getElementById('m-hometown').value.trim()    || null,
+      occupation:    document.getElementById('m-occupation').value.trim()  || null,
+      bio:           document.getElementById('m-bio').value.trim()         || null,
+      created_by:    user.id,
+    });
+
+    if (error) { showAlert('添加失败：' + error.message, 'error'); return; }
+
+    showAlert('成员已添加！', 'success');
+    // Clear form
+    ['m-name','m-dob','m-dod','m-nationality','m-hometown','m-occupation','m-bio'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('m-gender').value = '';
+    await loadMembers();
+  }
+
+  async function deleteMember(id) {
+    if (!confirm('确认删除此成员？相关关系也将一并删除。')) return;
+    await _supabase.from('relationships').delete()
+      .or(`member_a_id.eq.${id},member_b_id.eq.${id}`);
+    await _supabase.from('family_members').delete().eq('id', id);
+    showAlert('成员已删除', 'success');
+    await loadAll();
+  }
+
+  // ── Edit member modal ────────────────────────────────────────
+  function openEditModal(member) {
+    document.getElementById('edit-member-id').value  = member.id;
+    document.getElementById('edit-name').value        = member.name || '';
+    document.getElementById('edit-gender').value      = member.gender || '';
+    document.getElementById('edit-dob').value         = member.date_of_birth || '';
+    document.getElementById('edit-dod').value         = member.date_of_death || '';
+    document.getElementById('edit-nationality').value = member.nationality || '';
+    document.getElementById('edit-hometown').value    = member.hometown || '';
+    document.getElementById('edit-occupation').value  = member.occupation || '';
+    document.getElementById('edit-bio').value         = member.bio || '';
+    document.getElementById('edit-modal').classList.add('open');
+  }
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('open');
+  }
+  async function saveMemberEdit() {
+    const id   = document.getElementById('edit-member-id').value;
+    const name = document.getElementById('edit-name').value.trim();
+    if (!name) { showAlert('姓名不能为空', 'error'); return; }
+
+    const { error } = await _supabase.from('family_members').update({
+      name,
+      gender:        document.getElementById('edit-gender').value      || null,
+      date_of_birth: document.getElementById('edit-dob').value         || null,
+      date_of_death: document.getElementById('edit-dod').value         || null,
+      nationality:   document.getElementById('edit-nationality').value.trim() || null,
+      hometown:      document.getElementById('edit-hometown').value.trim()    || null,
+      occupation:    document.getElementById('edit-occupation').value.trim()  || null,
+      bio:           document.getElementById('edit-bio').value.trim()         || null,
+    }).eq('id', id);
+
+    if (error) { showAlert('保存失败：' + error.message, 'error'); return; }
+    showAlert('资料已更新！', 'success');
+    closeEditModal();
+    await loadMembers();
+  }
+
+  // ── Relations ────────────────────────────────────────────────
+  function populateMemberSelects() {
+    ['rel-member-a', 'rel-member-b'].forEach(id => {
+      const sel = document.getElementById(id);
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">请选择成员</option>' +
+        allMembers.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      if (cur) sel.value = cur;
+    });
+  }
+
+  async function loadRelations() {
+    const { data } = await _supabase
+      .from('relationships')
+      .select('*');
+    allRelations = data || [];
+    renderRelations();
+  }
+
+  function renderRelations() {
+    const list = document.getElementById('relations-list');
+    if (!allRelations.length) {
+      list.innerHTML = '<p style="color:var(--ink-muted);font-size:0.88rem;">暂无关系记录。</p>';
+      return;
+    }
+    const typeMap = { parent_child: '亲子', spouse: '配偶', sibling: '兄弟姐妹' };
+    list.innerHTML = '<div class="rel-chip-list">' +
+      allRelations.map(r => {
+        const a = allMembers.find(m => m.id === r.member_a_id);
+        const b = allMembers.find(m => m.id === r.member_b_id);
+        if (!a || !b) return '';
+        return `<span class="rel-chip">
+          ${a.name} <span style="color:var(--gold)">→ ${typeMap[r.relationship_type] || r.relationship_type} →</span> ${b.name}
+          <span class="rel-chip-del" onclick="deleteRelation('${r.id}')">✕</span>
+        </span>`;
+      }).join('') + '</div>';
+  }
+
+  async function addRelation() {
+    const aId = document.getElementById('rel-member-a').value;
+    const bId = document.getElementById('rel-member-b').value;
+    const type = document.getElementById('rel-type').value;
+    if (!aId || !bId)  { showAlert('请选择两位成员', 'error'); return; }
+    if (aId === bId)   { showAlert('不能与自身建立关系', 'error'); return; }
+
+    const user = await getCurrentUser();
+    const { error } = await _supabase.from('relationships').insert({
+      member_a_id: aId,
+      member_b_id: bId,
+      relationship_type: type,
+      created_by: user.id,
+    });
+
+    if (error) { showAlert('建立关系失败：' + error.message, 'error'); return; }
+    showAlert('关系已建立！', 'success');
+    await loadRelations();
+  }
+
+  async function deleteRelation(id) {
+    if (!confirm('确认删除此关系？')) return;
+    await _supabase.from('relationships').delete().eq('id', id);
+    showAlert('关系已删除', 'success');
+    await loadRelations();
+  }
+
+  // ── Users ────────────────────────────────────────────────────
+  async function loadUsers() {
+    const { data: profiles } = await _supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at');
+
+    const tbody = document.getElementById('users-table-body');
+    if (!profiles?.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:var(--ink-muted);">暂无用户</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = profiles.map(p => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="member-avatar-sm" style="width:32px;height:32px;font-size:0.85rem;">
+              ${p.avatar_url ? `<img src="${getAvatarUrl(p.avatar_url)}" />` : '👤'}
+            </div>
+            ${p.full_name || '未设置'}
+          </div>
+        </td>
+        <td style="font-size:0.83rem;color:var(--ink-muted);">—</td>
+        <td style="font-size:0.83rem;">${p.created_at ? p.created_at.slice(0,10) : '—'}</td>
+        <td>
+          <select class="user-role-select" onchange="updateUserRole('${p.id}', this.value)">
+            <option value="member" ${p.role === 'member' ? 'selected' : ''}>成员</option>
+            <option value="admin"  ${p.role === 'admin'  ? 'selected' : ''}>管理员</option>
+          </select>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function updateUserRole(userId, role) {
+    const { error } = await _supabase.from('profiles')
+      .update({ role })
+      .eq('id', userId);
+    if (error) showAlert('角色更新失败', 'error');
+    else showAlert('用户角色已更新', 'success');
+  }
+
+  // ── Alert ────────────────────────────────────────────────────
+  function showAlert(msg, type = 'info') {
+    const el = document.getElementById('page-alert');
+    el.textContent = msg;
+    el.className = `alert alert-${type} visible`;
+    setTimeout(() => el.className = 'alert', 4000);
+  }
+
+  init();
+</script>
+</body>
+</html>

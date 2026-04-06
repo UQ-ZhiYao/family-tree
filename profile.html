@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>个人设置 — 家族谱</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .profile-sidebar-card {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: calc(var(--nav-height) + 24px);
+    }
+    .avatar-wrap {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 16px;
+    }
+    .avatar-img {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--parchment-3);
+      background: var(--parchment-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+      overflow: hidden;
+    }
+    .avatar-img img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-edit-btn {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 30px; height: 30px;
+      background: var(--ink);
+      color: var(--parchment);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+      border: 2px solid var(--white);
+      transition: var(--transition);
+    }
+    .avatar-edit-btn:hover { background: var(--ink-light); }
+    #avatar-file-input { display: none; }
+    .profile-display-name {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+    .profile-email {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      margin-bottom: 16px;
+      word-break: break-all;
+    }
+    .profile-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--parchment-3);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+    .profile-stat {
+      background: var(--parchment);
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .profile-stat-num  { font-family: var(--font-serif); font-size: 1.3rem; color: var(--ink); }
+    .profile-stat-label { font-size: 0.72rem; color: var(--ink-muted); }
+
+    /* Form card */
+    .form-card {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-soft);
+    }
+    .form-card + .form-card { margin-top: 20px; }
+    .form-card-title {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--parchment-3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Upload progress */
+    .upload-progress {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      margin-top: 8px;
+    }
+    .upload-progress.visible { display: flex; }
+
+    @media (max-width: 900px) {
+      .profile-grid { grid-template-columns: 1fr; }
+      .profile-sidebar-card { position: static; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <div class="brand-icon">🌳</div>
+    家族谱
+  </a>
+  <div class="navbar-links">
+    <span id="nav-guest"><a href="login.html" class="btn-login">登入</a></span>
+    <span id="nav-user" class="navbar-user hidden">
+      <a href="dashboard.html">家族图谱</a>
+      <a href="photos.html">照片</a>
+      <a href="admin.html" id="nav-admin-link" style="display:none;">管理员</a>
+      <a href="profile.html">
+        <img src="" alt="头像" class="navbar-avatar" id="nav-avatar" onerror="this.style.display='none'" />
+      </a>
+      <button class="btn btn-outline btn-sm" onclick="logout()">登出</button>
+    </span>
+  </div>
+</nav>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <span class="sidebar-label">导航</span>
+    <div class="sidebar-section">
+      <a href="dashboard.html" class="sidebar-link"><span class="icon">🗺️</span> 家族图谱</a>
+      <a href="photos.html"    class="sidebar-link"><span class="icon">📸</span> 照片与上传</a>
+      <a href="profile.html"   class="sidebar-link active"><span class="icon">👤</span> 个人设置</a>
+    </div>
+    <span class="sidebar-label" id="sidebar-admin-label" style="display:none;">管理员</span>
+    <div class="sidebar-section" id="sidebar-admin-section" style="display:none;">
+      <a href="admin.html" class="sidebar-link"><span class="icon">⚙️</span> 管理面板</a>
+    </div>
+    <span class="sidebar-label">账号</span>
+    <div class="sidebar-section">
+      <a class="sidebar-link" onclick="logout()" style="cursor:pointer;"><span class="icon">🚪</span> 登出</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>个人设置</h1>
+      <p>管理您的个人资料与账号信息</p>
+    </div>
+
+    <div class="alert" id="page-alert"></div>
+
+    <div class="profile-grid">
+
+      <!-- ── Left: avatar card ── -->
+      <div class="profile-sidebar-card">
+        <div class="avatar-wrap">
+          <div class="avatar-img" id="avatar-preview">👤</div>
+          <div class="avatar-edit-btn" onclick="document.getElementById('avatar-file-input').click()">✏️</div>
+        </div>
+        <input type="file" id="avatar-file-input" accept="image/*" onchange="handleAvatarUpload(this)" />
+
+        <div class="profile-display-name" id="sidebar-name">—</div>
+        <div class="profile-email" id="sidebar-email">—</div>
+        <span class="badge badge-gold" id="sidebar-role"></span>
+
+        <div class="upload-progress" id="upload-progress">
+          <span class="spinner"></span> 正在上传头像...
+        </div>
+
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="stat-joined">—</div>
+            <div class="profile-stat-label">加入年份</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="stat-photos">—</div>
+            <div class="profile-stat-label">我的照片</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Right: form cards ── -->
+      <div>
+
+        <!-- Basic info -->
+        <div class="form-card">
+          <div class="form-card-title">👤 基本资料</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">姓名 <span style="color:var(--red)">*</span></label>
+              <input type="text" class="form-input" id="f-name" placeholder="请输入姓名" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">国籍</label>
+              <input type="text" class="form-input" id="f-nationality" placeholder="例：中国、马来西亚" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">生日</label>
+              <input type="date" class="form-input" id="f-dob" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">电话</label>
+              <input type="tel" class="form-input" id="f-phone" placeholder="例：+60 12-345 6789" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">籍贯</label>
+              <input type="text" class="form-input" id="f-hometown" placeholder="例：福建、广东" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">职业</label>
+              <input type="text" class="form-input" id="f-occupation" placeholder="例：工程师、教师" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">个人简介</label>
+            <textarea class="form-input" id="f-bio" placeholder="简单介绍一下自己..." rows="3"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="saveProfile()">
+            保存资料
+          </button>
+        </div>
+
+        <!-- Change password -->
+        <div class="form-card">
+          <div class="form-card-title">🔒 修改密码</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">新密码</label>
+              <input type="password" class="form-input" id="f-new-pwd" placeholder="至少 8 位字符" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">确认新密码</label>
+              <input type="password" class="form-input" id="f-confirm-pwd" placeholder="再次输入新密码" />
+            </div>
+          </div>
+          <button class="btn btn-outline" onclick="changePassword()">更新密码</button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  let currentProfile = null;
+
+  async function init() {
+    await requireAuth();
+    await initNavbar();
+
+    const admin = await isAdmin();
+    if (admin) {
+      document.getElementById('sidebar-admin-label').style.display = 'block';
+      document.getElementById('sidebar-admin-section').style.display = 'block';
+    }
+
+    await loadProfile();
+  }
+
+  async function loadProfile() {
+    const user    = await getCurrentUser();
+    const profile = await getCurrentProfile();
+    currentProfile = profile;
+
+    // Sidebar
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-name').textContent  = profile?.full_name || '未设置';
+    document.getElementById('sidebar-role').textContent  = profile?.role === 'admin' ? '管理员' : '成员';
+
+    if (profile?.created_at) {
+      document.getElementById('stat-joined').textContent = profile.created_at.slice(0, 4);
+    }
+
+    // Count photos
+    const { count } = await _supabase
+      .from('photos')
+      .select('id', { count: 'exact', head: true })
+      .eq('uploaded_by', user.id);
+    document.getElementById('stat-photos').textContent = count ?? 0;
+
+    // Avatar
+    if (profile?.avatar_url) {
+      document.getElementById('avatar-preview').innerHTML =
+        `<img src="${getAvatarUrl(profile.avatar_url)}" alt="头像" />`;
+    }
+
+    // Fill form
+    if (profile) {
+      setVal('f-name',        profile.full_name);
+      setVal('f-nationality', profile.nationality);
+      setVal('f-dob',         profile.date_of_birth);
+      setVal('f-phone',       profile.phone);
+      setVal('f-hometown',    profile.hometown);
+      setVal('f-occupation',  profile.occupation);
+      setVal('f-bio',         profile.bio);
+    }
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (el && val) el.value = val;
+  }
+
+  // ── Save profile ─────────────────────────────────────────────
+  async function saveProfile() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { showAlert('请填写姓名', 'error'); return; }
+
+    const user = await getCurrentUser();
+    const { error } = await _supabase.from('profiles').upsert({
+      id:           user.id,
+      full_name:    name,
+      nationality:  document.getElementById('f-nationality').value.trim() || null,
+      date_of_birth:document.getElementById('f-dob').value         || null,
+      phone:        document.getElementById('f-phone').value.trim() || null,
+      hometown:     document.getElementById('f-hometown').value.trim() || null,
+      occupation:   document.getElementById('f-occupation').value.trim() || null,
+      bio:          document.getElementById('f-bio').value.trim()    || null,
+    });
+
+    if (error) {
+      showAlert('保存失败：' + error.message, 'error');
+    } else {
+      showAlert('资料已保存！', 'success');
+      document.getElementById('sidebar-name').textContent = name;
+    }
+  }
+
+  // ── Change password ──────────────────────────────────────────
+  async function changePassword() {
+    const pwd     = document.getElementById('f-new-pwd').value;
+    const confirm = document.getElementById('f-confirm-pwd').value;
+    if (!pwd || !confirm) { showAlert('请填写新密码', 'error'); return; }
+    if (pwd.length < 8)   { showAlert('密码须至少 8 位字符', 'error'); return; }
+    if (pwd !== confirm)  { showAlert('两次输入的密码不一致', 'error'); return; }
+
+    const { error } = await _supabase.auth.updateUser({ password: pwd });
+    if (error) {
+      showAlert('密码更新失败：' + error.message, 'error');
+    } else {
+      showAlert('密码已成功更新！', 'success');
+      document.getElementById('f-new-pwd').value     = '';
+      document.getElementById('f-confirm-pwd').value = '';
+    }
+  }
+
+  // ── Avatar upload ────────────────────────────────────────────
+  async function handleAvatarUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      showAlert('图片不能超过 2MB', 'error');
+      return;
+    }
+
+    document.getElementById('upload-progress').classList.add('visible');
+
+    const user = await getCurrentUser();
+    const ext  = file.name.split('.').pop();
+    const path = `${user.id}/avatar.${ext}`;
+
+    const { error: upErr } = await _supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true });
+
+    if (upErr) {
+      showAlert('头像上传失败：' + upErr.message, 'error');
+      document.getElementById('upload-progress').classList.remove('visible');
+      return;
+    }
+
+    const { error: dbErr } = await _supabase.from('profiles')
+      .update({ avatar_url: path })
+      .eq('id', user.id);
+
+    document.getElementById('upload-progress').classList.remove('visible');
+
+    if (dbErr) {
+      showAlert('头像保存失败：' + dbErr.message, 'error');
+    } else {
+      const url = getAvatarUrl(path) + '?t=' + Date.now();
+      document.getElementById('avatar-preview').innerHTML = `<img src="${url}" alt="头像" />`;
+      document.getElementById('nav-avatar').src = url;
+      showAlert('头像已更新！', 'success');
+    }
+  }
+
+  // ── Alert helper ─────────────────────────────────────────────
+  function showAlert(msg, type = 'info') {
+    const el = document.getElementById('page-alert');
+    el.textContent = msg;
+    el.className = `alert alert-${type} visible`;
+    setTimeout(() => el.className = 'alert', 4000);
+  }
+
+  init();
+</script>
+</body>
+</html>
