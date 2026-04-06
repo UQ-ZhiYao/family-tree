@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>关于我们 — 家族谱</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ── Page hero ── */
+    .about-hero {
+      background: var(--ink);
+      padding: 80px 24px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .about-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(184,134,11,0.12), transparent 70%);
+    }
+    .about-hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: 0.04;
+      background-image:
+        repeating-linear-gradient(0deg, var(--parchment) 0, var(--parchment) 1px, transparent 1px, transparent 48px),
+        repeating-linear-gradient(90deg, var(--parchment) 0, var(--parchment) 1px, transparent 1px, transparent 48px);
+    }
+    .about-hero-content { position: relative; }
+    .about-hero h1 { color: var(--parchment); font-size: 2.4rem; margin-bottom: 12px; }
+    .about-hero p  { color: rgba(250,246,239,0.55); font-size: 1rem; }
+
+    /* ── Mission ── */
+    .mission-block {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .mission-quote {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.7;
+      margin-bottom: 20px;
+      position: relative;
+      padding: 0 20px;
+    }
+    .mission-quote::before {
+      content: '❝';
+      color: var(--gold);
+      font-size: 2rem;
+      position: absolute;
+      left: -8px; top: -10px;
+      opacity: 0.6;
+    }
+    .mission-source {
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+
+    /* ── Values ── */
+    .value-card {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-soft);
+    }
+    .value-icon {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+    .value-card h3 { font-size: 1rem; margin-bottom: 8px; }
+    .value-card p  { font-size: 0.87rem; color: var(--ink-muted); line-height: 1.7; }
+
+    /* ── Timeline ── */
+    .timeline {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      padding-left: 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px; top: 0; bottom: 0;
+      width: 1px;
+      background: var(--parchment-3);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 32px;
+      padding-left: 20px;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -26px; top: 6px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid var(--parchment-2);
+    }
+    .timeline-year {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .timeline-item h4 { font-size: 0.97rem; margin-bottom: 4px; }
+    .timeline-item p  { font-size: 0.85rem; color: var(--ink-muted); }
+
+    /* ── Contact ── */
+    .contact-card {
+      background: var(--ink);
+      border-radius: var(--radius-lg);
+      padding: 48px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .contact-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(184,134,11,0.1), transparent 70%);
+    }
+    .contact-card h2 { color: var(--parchment); position: relative; margin-bottom: 10px; }
+    .contact-card p  { color: rgba(250,246,239,0.5); position: relative; margin-bottom: 24px; }
+    .contact-methods {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .contact-method {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid rgba(184,134,11,0.4);
+      border-radius: var(--radius);
+      color: var(--parchment-2);
+      font-size: 0.88rem;
+      transition: var(--transition);
+      background: rgba(184,134,11,0.08);
+    }
+    .contact-method:hover {
+      background: rgba(184,134,11,0.18);
+      border-color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <div class="brand-icon">🌳</div>
+    家族谱
+  </a>
+  <div class="navbar-links">
+    <a href="index.html">主页</a>
+    <a href="about.html" class="active">关于我们</a>
+    <span id="nav-guest">
+      <a href="login.html" class="btn-login">登入</a>
+    </span>
+    <span id="nav-user" class="navbar-user hidden">
+      <a href="dashboard.html">家族图谱</a>
+      <a href="profile.html">
+        <img src="assets/avatar-default.png" alt="头像" class="navbar-avatar" id="nav-avatar"
+             onerror="this.style.display='none'" />
+      </a>
+    </span>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- ── HERO ── -->
+  <div class="about-hero">
+    <div class="about-hero-content">
+      <span class="hero-eyebrow" style="color: var(--gold-light);">关于我们</span>
+      <h1>我们的使命</h1>
+      <p>用科技连接家族，让记忆永远流传</p>
+    </div>
+  </div>
+
+  <!-- ── MISSION ── -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="mission-block">
+        <div class="mission-quote">
+          家族是我们根之所在，是历史的传承者，也是未来的守护者。
+        </div>
+        <p class="mission-source">—— 家族谱 · 使命宣言</p>
+
+        <div style="height: 40px;"></div>
+        <p style="font-size: 1rem; line-height: 2; color: var(--ink-light);">
+          我们相信，每一个家族都有值得被记录和传承的故事。<br />
+          家族谱致力于为华人家族提供一个简单、安全、美观的数字平台，<br />
+          让家族的历史、照片、故事可以被永久保存，<br />
+          让身处世界各地的家族成员都能相互连接。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VALUES ── -->
+  <section class="section" style="background: var(--parchment-2);">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>我们的价值观</h2>
+        <p>这些核心理念指导着我们的每一个决定</p>
+      </div>
+      <div class="grid-3">
+        <div class="value-card">
+          <div class="value-icon">🏮</div>
+          <h3>传承</h3>
+          <p>中华文化历来重视家族传承。我们以现代技术延续这一古老传统，让每一代人都能了解自己的根与来处。</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🔗</div>
+          <h3>连接</h3>
+          <p>无论家族成员身在何处，地理距离都不应成为阻隔。我们让相距万里的亲人也能在同一棵家族树下相聚。</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🛡️</div>
+          <h3>隐私</h3>
+          <p>家族档案是私密的。我们的平台只允许经授权的家族成员访问，保护每一位成员的隐私与数据安全。</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">✨</div>
+          <h3>简单</h3>
+          <p>技术应该为人服务，而非增添负担。我们力求让所有年龄层的家族成员都能轻松上手、愉快使用。</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">💾</div>
+          <h3>永久</h3>
+          <p>照片会褪色，记忆会模糊，但数字档案可以永久保存。我们致力于让家族的故事流传百年。</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🌏</div>
+          <h3>包容</h3>
+          <p>无论您的家族来自何方、身处何地，家族谱都欢迎所有华人家族的加入与使用。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── WHAT'S INSIDE ── -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>平台功能一览</h2>
+        <p>我们提供完整的家族档案管理工具</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="font-size:1.5rem;margin-top:2px;">🗺️</div>
+            <div>
+              <h3 class="card-title">家族图谱（Dashboard）</h3>
+              <p>登入后即可查看互动式家族树，可拖拽、缩放，点击节点查看成员详情。</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="font-size:1.5rem;margin-top:2px;">👤</div>
+            <div>
+              <h3 class="card-title">个人设置</h3>
+              <p>上传头像，填写姓名、国籍、生日、籍贯、职业、简介等个人资料。</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="font-size:1.5rem;margin-top:2px;">📸</div>
+            <div>
+              <h3 class="card-title">照片与上传</h3>
+              <p>上传家族照片，为照片中的成员打上标签，建立家族相册。</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:14px;align-items:flex-start;">
+            <div style="font-size:1.5rem;margin-top:2px;">⚙️</div>
+            <div>
+              <h3 class="card-title">管理员面板</h3>
+              <p>管理员可添加成员、设定家族关系、编辑资料，全面管理家族谱。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TIMELINE ── -->
+  <section class="section" style="background: var(--parchment-2);">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>发展历程</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">2024 年 · 起源</div>
+          <h4>项目诞生</h4>
+          <p>源于记录家族历史的初心，家族谱项目正式启动。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2024 年 · 建设</div>
+          <h4>核心功能开发</h4>
+          <p>完成用户系统、家族图谱、照片上传等核心功能的开发。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2025 年 · 上线</div>
+          <h4>正式发布</h4>
+          <p>家族谱正式向家族成员开放，开始记录家族故事。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">未来 · 展望</div>
+          <h4>持续完善</h4>
+          <p>不断优化功能，支持更多家族特色需求，让家族谱更加完善。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACT ── -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="contact-card">
+        <h2>联系我们</h2>
+        <p>有任何问题或建议？欢迎与我们联系</p>
+        <div class="contact-methods">
+          <a href="mailto:admin@familytree.com" class="contact-method">
+            📧 admin@familytree.com
+          </a>
+          <a href="login.html" class="contact-method">
+            🌳 进入家族谱
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>© 2025 家族谱 · 记录家族，传承历史</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  initNavbar();
+</script>
+</body>
+</html>

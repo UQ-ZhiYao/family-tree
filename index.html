@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>主页 — 家族谱</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ── Animated hero text ── */
+    .hero h1 span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp 0.6s ease forwards;
+    }
+    .hero h1 span:nth-child(1) { animation-delay: 0.1s; }
+    .hero h1 span:nth-child(2) { animation-delay: 0.25s; }
+    .hero p {
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.4s forwards;
+    }
+    .hero-cta {
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.55s forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      background: var(--white);
+      border-top: 1px solid var(--parchment-3);
+      border-bottom: 1px solid var(--parchment-3);
+      padding: 28px 24px;
+    }
+    .stats-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-item {}
+    .stat-number {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+    }
+    .stat-divider {
+      border: none;
+      border-left: 1px solid var(--parchment-3);
+      height: 40px;
+      align-self: center;
+    }
+
+    /* ── Features section ── */
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--parchment-3);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      transition: var(--transition);
+      box-shadow: var(--shadow-soft);
+    }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-mid);
+      border-color: var(--gold-pale);
+    }
+    .feature-icon {
+      width: 48px; height: 48px;
+      background: var(--parchment-2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+    }
+    .feature-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 0.87rem;
+      color: var(--ink-muted);
+      line-height: 1.7;
+    }
+
+    /* ── How it works ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 12%;
+      right: 12%;
+      height: 1px;
+      background: var(--parchment-3);
+    }
+    .step-item {
+      text-align: center;
+      padding: 0 16px;
+      position: relative;
+    }
+    .step-num {
+      width: 56px; height: 56px;
+      background: var(--ink);
+      color: var(--parchment);
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      position: relative;
+      z-index: 1;
+      border: 3px solid var(--parchment-2);
+    }
+    .step-item h4 {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+    .step-item p {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+    }
+
+    /* ── CTA banner ── */
+    .cta-banner {
+      background: var(--ink);
+      border-radius: var(--radius-lg);
+      padding: 56px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(184,134,11,0.15), transparent 70%);
+    }
+    .cta-banner h2 {
+      color: var(--parchment);
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .cta-banner p {
+      color: rgba(250,246,239,0.55);
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .cta-banner .btn-gold { position: relative; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <div class="brand-icon">🌳</div>
+    家族谱
+  </a>
+  <div class="navbar-links">
+    <a href="index.html" class="active">主页</a>
+    <a href="about.html">关于我们</a>
+
+    <!-- Guest links -->
+    <span id="nav-guest">
+      <a href="login.html" class="btn-login">登入</a>
+    </span>
+
+    <!-- Logged-in user -->
+    <span id="nav-user" class="navbar-user hidden">
+      <a href="dashboard.html">家族图谱</a>
+      <a href="profile.html">
+        <img src="assets/avatar-default.png" alt="头像" class="navbar-avatar" id="nav-avatar"
+             onerror="this.style.display='none'" />
+      </a>
+    </span>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-pattern"></div>
+    <div class="hero-content">
+      <span class="hero-eyebrow">家族 · 记忆 · 传承</span>
+      <h1>
+        <span>记录家族，</span>
+        <span>传承历史</span>
+      </h1>
+      <div class="hero-divider"></div>
+      <p>
+        用现代方式保存家族的珍贵记忆，<br />
+        让每一位家族成员的故事永远流传。
+      </p>
+      <div class="hero-cta">
+        <a href="login.html" class="btn btn-primary btn-lg">立即开始</a>
+        <a href="about.html" class="btn btn-outline btn-lg">了解更多</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STATS ── -->
+  <div class="stats-strip">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <div class="stat-number" id="stat-members">—</div>
+        <div class="stat-label">家族成员</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-photos">—</div>
+        <div class="stat-label">珍贵照片</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-number" id="stat-users">—</div>
+        <div class="stat-label">注册用户</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FEATURES ── -->
+  <section class="section" style="background: var(--parchment-2);">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>为什么选择家族谱？</h2>
+        <p>专为华人家族设计，简单易用，功能完善</p>
+      </div>
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3>互动家族图谱</h3>
+          <p>可拖拽、可缩放的家族关系图，直观展示每位成员之间的血脉联系。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📸</div>
+          <h3>照片与回忆</h3>
+          <p>上传珍贵家族照片，为每位成员打上标签，让历史图像永远留存。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>个人档案</h3>
+          <p>记录每位家族成员的出生地、职业、生平故事，建立完整的家族档案。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>安全私密</h3>
+          <p>需要账号才能访问，家族资料只在成员之间共享，安全有保障。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚙️</div>
+          <h3>管理员功能</h3>
+          <p>管理员可设置家族关系、编辑成员资料，轻松管理整个家族树。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>多设备访问</h3>
+          <p>无需安装应用，手机、平板、电脑均可流畅使用，随时随地访问家族谱。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>如何使用？</h2>
+        <p>三步即可开始记录您的家族历史</p>
+      </div>
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">一</div>
+          <h4>注册账号</h4>
+          <p>用电子邮件注册，首位用户将自动成为管理员</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">二</div>
+          <h4>建立家族树</h4>
+          <p>管理员添加家族成员并设置相互关系</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">三</div>
+          <h4>共同记录</h4>
+          <p>所有成员登入后可浏览图谱、上传照片</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="section" style="background: var(--parchment-2);">
+    <div class="section-inner">
+      <div class="cta-banner">
+        <h2>立即开始记录您的家族历史</h2>
+        <p>注册完全免费，今天就开始属于您家族的数字档案</p>
+        <a href="login.html" class="btn btn-gold btn-lg">免费注册</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>© 2025 家族谱 · 记录家族，传承历史</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  initNavbar();
+
+  // Load live stats from Supabase
+  async function loadStats() {
+    const [members, photos, users] = await Promise.all([
+      _supabase.from('family_members').select('id', { count: 'exact', head: true }),
+      _supabase.from('photos').select('id', { count: 'exact', head: true }),
+      _supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    ]);
+    document.getElementById('stat-members').textContent = members.count ?? 0;
+    document.getElementById('stat-photos').textContent  = photos.count  ?? 0;
+    document.getElementById('stat-users').textContent   = users.count   ?? 0;
+  }
+  loadStats();
+</script>
+</body>
+</html>

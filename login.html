@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登入 — 家族谱</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    body { background: var(--parchment-2); }
+
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── Left panel: decorative ── */
+    .auth-panel-left {
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-panel-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 50% 50%, rgba(184,134,11,0.15) 0%, transparent 70%);
+    }
+    .auth-panel-left::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.05;
+      background-image:
+        repeating-linear-gradient(0deg, var(--parchment) 0, var(--parchment) 1px, transparent 1px, transparent 48px),
+        repeating-linear-gradient(90deg, var(--parchment) 0, var(--parchment) 1px, transparent 1px, transparent 48px);
+    }
+    .auth-left-content {
+      position: relative;
+      text-align: center;
+      max-width: 360px;
+    }
+    .auth-logo {
+      width: 72px; height: 72px;
+      background: rgba(184,134,11,0.15);
+      border: 1.5px solid rgba(184,134,11,0.4);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      font-size: 2rem;
+    }
+    .auth-left-content h1 {
+      font-family: var(--font-serif);
+      color: var(--parchment);
+      font-size: 2rem;
+      margin-bottom: 14px;
+    }
+    .auth-left-content p {
+      color: rgba(250,246,239,0.55);
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+    .auth-ornament {
+      margin: 28px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .auth-ornament span {
+      width: 40px; height: 1px;
+      background: rgba(184,134,11,0.4);
+    }
+    .auth-ornament i {
+      color: var(--gold);
+      font-size: 0.7rem;
+    }
+    .auth-features {
+      text-align: left;
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .auth-feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .auth-feature-icon {
+      width: 30px; height: 30px;
+      background: rgba(184,134,11,0.12);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .auth-feature-text strong {
+      display: block;
+      color: var(--parchment);
+      font-size: 0.88rem;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .auth-feature-text span {
+      color: rgba(250,246,239,0.45);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    /* ── Right panel: form ── */
+    .auth-panel-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 48px;
+      background: var(--parchment);
+    }
+    .auth-form-wrap {
+      width: 100%;
+      max-width: 380px;
+    }
+    .auth-form-header {
+      margin-bottom: 36px;
+    }
+    .auth-form-header h2 {
+      font-size: 1.7rem;
+      margin-bottom: 6px;
+    }
+    .auth-form-header p {
+      color: var(--ink-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Tab switcher */
+    .auth-tabs {
+      display: flex;
+      background: var(--parchment-2);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 28px;
+      border: 1px solid var(--parchment-3);
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      border-radius: calc(var(--radius) - 2px);
+      text-align: center;
+      font-size: 0.88rem;
+      cursor: pointer;
+      color: var(--ink-muted);
+      transition: var(--transition);
+      user-select: none;
+    }
+    .auth-tab.active {
+      background: var(--white);
+      color: var(--ink);
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(26,18,8,0.08);
+    }
+
+    /* Form panels */
+    .auth-form-panel { display: none; }
+    .auth-form-panel.active { display: block; }
+
+    /* Submit button loading state */
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.95rem;
+      position: relative;
+    }
+    .btn-submit .btn-text { transition: opacity 0.2s; }
+    .btn-submit .btn-spinner {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-submit.loading .btn-text { opacity: 0; }
+    .btn-submit.loading .btn-spinner { display: flex; }
+    .btn-submit.loading .spinner { border-top-color: var(--parchment); border-color: rgba(255,255,255,0.3); }
+
+    .auth-footer-text {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.83rem;
+      color: var(--ink-muted);
+    }
+    .auth-footer-text a {
+      color: var(--gold);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .auth-footer-text a:hover { text-decoration: underline; }
+
+    /* Password toggle */
+    .input-group {
+      position: relative;
+    }
+    .input-group .form-input {
+      padding-right: 44px;
+    }
+    .input-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--ink-muted);
+      font-size: 0.85rem;
+      user-select: none;
+      transition: var(--transition);
+    }
+    .input-toggle:hover { color: var(--ink); }
+
+    /* Back to home */
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.83rem;
+      color: var(--ink-muted);
+      margin-bottom: 32px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .back-home:hover { color: var(--ink); }
+
+    @media (max-width: 768px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .auth-panel-left { display: none; }
+      .auth-panel-right { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-page">
+
+  <!-- ── Left decorative panel ── -->
+  <div class="auth-panel-left">
+    <div class="auth-left-content">
+      <div class="auth-logo">🌳</div>
+      <h1>家族谱</h1>
+      <p>记录家族历史，传承血脉情感，连接每一代人的故事。</p>
+
+      <div class="auth-ornament">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+
+      <div class="auth-features">
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon">🗺️</div>
+          <div class="auth-feature-text">
+            <strong>互动家族图谱</strong>
+            <span>可视化展示家族关系，直观清晰</span>
+          </div>
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon">📸</div>
+          <div class="auth-feature-text">
+            <strong>珍贵照片收藏</strong>
+            <span>上传并标注家族历史照片</span>
+          </div>
+        </div>
+        <div class="auth-feature-item">
+          <div class="auth-feature-icon">👤</div>
+          <div class="auth-feature-text">
+            <strong>个人档案管理</strong>
+            <span>记录每位成员的生平故事</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right form panel ── -->
+  <div class="auth-panel-right">
+    <div class="auth-form-wrap">
+
+      <a href="index.html" class="back-home">← 返回主页</a>
+
+      <div class="auth-form-header">
+        <h2>欢迎回来</h2>
+        <p>请登入您的家族谱账号</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">登入</div>
+        <div class="auth-tab" id="tab-register" onclick="switchTab('register')">注册</div>
+      </div>
+
+      <!-- Alert -->
+      <div class="alert" id="auth-alert"></div>
+
+      <!-- ── Login Form ── -->
+      <div class="auth-form-panel active" id="panel-login">
+        <div class="form-group">
+          <label class="form-label">电子邮件</label>
+          <input type="email" class="form-input" id="login-email" placeholder="请输入电子邮件" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <div class="input-group">
+            <input type="password" class="form-input" id="login-password" placeholder="请输入密码" />
+            <span class="input-toggle" onclick="togglePwd('login-password', this)">显示</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-submit" id="btn-login" onclick="handleLogin()">
+          <span class="btn-text">登入</span>
+          <span class="btn-spinner"><span class="spinner"></span></span>
+        </button>
+        <p class="auth-footer-text">
+          还没有账号？<a onclick="switchTab('register')">立即注册</a>
+        </p>
+      </div>
+
+      <!-- ── Register Form ── -->
+      <div class="auth-form-panel" id="panel-register">
+        <div class="form-group">
+          <label class="form-label">姓名</label>
+          <input type="text" class="form-input" id="reg-name" placeholder="请输入您的姓名" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">电子邮件</label>
+          <input type="email" class="form-input" id="reg-email" placeholder="请输入电子邮件" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <div class="input-group">
+            <input type="password" class="form-input" id="reg-password" placeholder="至少 8 位字符" />
+            <span class="input-toggle" onclick="togglePwd('reg-password', this)">显示</span>
+          </div>
+          <span class="form-hint">密码须至少 8 位字符</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">确认密码</label>
+          <div class="input-group">
+            <input type="password" class="form-input" id="reg-confirm" placeholder="再次输入密码" />
+            <span class="input-toggle" onclick="togglePwd('reg-confirm', this)">显示</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-submit" id="btn-register" onclick="handleRegister()">
+          <span class="btn-text">创建账号</span>
+          <span class="btn-spinner"><span class="spinner"></span></span>
+        </button>
+        <p class="auth-footer-text">
+          已有账号？<a onclick="switchTab('login')">立即登入</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  // Redirect if already logged in
+  (async () => {
+    const user = await getCurrentUser();
+    if (user) window.location.href = 'dashboard.html';
+  })();
+
+  // ── Tab switcher ─────────────────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+    document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+    hideAlert();
+  }
+
+  // ── Show / hide alert ────────────────────────────────────────
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('auth-alert');
+    el.textContent = msg;
+    el.className = `alert alert-${type} visible`;
+  }
+  function hideAlert() {
+    document.getElementById('auth-alert').className = 'alert';
+  }
+
+  // ── Loading state ────────────────────────────────────────────
+  function setLoading(btnId, loading) {
+    document.getElementById(btnId).classList.toggle('loading', loading);
+    document.getElementById(btnId).disabled = loading;
+  }
+
+  // ── Password visibility toggle ───────────────────────────────
+  function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.textContent = isText ? '显示' : '隐藏';
+  }
+
+  // ── Handle Login ─────────────────────────────────────────────
+  async function handleLogin() {
+    hideAlert();
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!email || !password) {
+      showAlert('请填写电子邮件和密码');
+      return;
+    }
+
+    setLoading('btn-login', true);
+    const { error } = await _supabase.auth.signInWithPassword({ email, password });
+    setLoading('btn-login', false);
+
+    if (error) {
+      const msgs = {
+        'Invalid login credentials': '电子邮件或密码错误，请重试。',
+        'Email not confirmed':        '请先验证您的电子邮件地址。',
+      };
+      showAlert(msgs[error.message] || '登入失败，请稍后再试。');
+    } else {
+      window.location.href = 'dashboard.html';
+    }
+  }
+
+  // ── Handle Register ──────────────────────────────────────────
+  async function handleRegister() {
+    hideAlert();
+    const name     = document.getElementById('reg-name').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm  = document.getElementById('reg-confirm').value;
+
+    if (!name || !email || !password || !confirm) {
+      showAlert('请填写所有必填项');
+      return;
+    }
+    if (password.length < 8) {
+      showAlert('密码须至少 8 位字符');
+      return;
+    }
+    if (password !== confirm) {
+      showAlert('两次输入的密码不一致');
+      return;
+    }
+
+    setLoading('btn-register', true);
+    const { error } = await _supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } }
+    });
+    setLoading('btn-register', false);
+
+    if (error) {
+      const msgs = {
+        'User already registered': '该电子邮件已被注册，请直接登入。',
+      };
+      showAlert(msgs[error.message] || '注册失败，请稍后再试。');
+    } else {
+      showAlert('注册成功！请检查您的电子邮件并完成验证。', 'success');
+    }
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const loginActive = document.getElementById('panel-login').classList.contains('active');
+    if (loginActive) handleLogin();
+    else handleRegister();
+  });
+</script>
+</body>
+</html>
